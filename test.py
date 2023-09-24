@@ -49,19 +49,19 @@ scaler = data_loader['scaler']
 model = torch.load(args.save_dir + "/G_T_model_10.pth")
 loss_fn = metrics.masked_rmse
 
-log_file = open(args.log_dir + '/loss_val_log.txt', 'w')
+log_file = open(args.log_dir + '/loss_test_log.txt', 'w')
 os.makedirs(args.save_dir, exist_ok=True)
 
 print ("Start training.....")
 
 for i in range(1, args.epochs + 1):
-    val_loss = []
-    val_mape = []
-    val_mae = []
+    test_loss = []
+    test_mape = []
+    test_mae = []
     
-    data_loader['val_loader'].shuffle()
+    data_loader['test_loader'].shuffle()
     with torch.no_grad():
-        for j, (x, y, t) in enumerate(data_loader['val_loader'].get_iterator()):
+        for j, (x, y, t) in enumerate(data_loader['test_loader'].get_iterator()):
             trainX = torch.FloatTensor(np.expand_dims(x, axis=-1)).to(device)
             trainY = torch.FloatTensor(np.expand_dims(y, axis=-1)).to(device)
             trainTE = torch.FloatTensor(t).to(device)
@@ -74,19 +74,19 @@ for i in range(1, args.epochs + 1):
             mape = metrics.masked_mape(predY, trainY, 0.0)
             mae = metrics.masked_mae(predY, trainY, 0.0)
             
-            val_loss.append(loss)
-            val_mape.append(mape)
-            val_mae.append(mae)
+            test_loss.append(loss)
+            test_mape.append(mape)
+            test_mae.append(mae)
             
      
             
-        epoch_val_loss = torch.mean(torch.tensor(val_loss))
-        epoch_val_mape = torch.mean(torch.tensor(val_mape))
-        epoch_val_mae = torch.mean(torch.tensor(val_mae))
+        epoch_test_loss = torch.mean(torch.tensor(test_loss))
+        epoch_test_mape = torch.mean(torch.tensor(test_mape))
+        epoch_test_mae = torch.mean(torch.tensor(test_mae))
         
-        log_file.write(f'Epoch {i}, {args.mode} Loss: {epoch_val_loss:.4f}, {args.mode} MAPE: {epoch_val_mape:.4f}, {args.mode} RMSE: {epoch_val_mae:.4f} \n')
+        log_file.write(f'Epoch {i}, {args.mode} Loss: {epoch_test_loss:.4f}, {args.mode} MAPE: {epoch_test_mape:.4f}, {args.mode} RMSE: {epoch_test_mae:.4f} \n')
         log_file.flush()
-        print(f'Epoch [{i}], {args.mode} Loss: {epoch_val_loss:.4f}, {args.mode} MAPE: {epoch_val_mape:.4f}, {args.mode} MAE: {epoch_val_mae:.4f}')
+        print(f'Epoch [{i}], {args.mode} Loss: {epoch_test_loss:.4f}, {args.mode} MAPE: {epoch_test_mape:.4f}, {args.mode} MAE: {epoch_test_mae:.4f}')
 
     
 
