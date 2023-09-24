@@ -11,10 +11,9 @@ class Model(nn.Module):
         self.device = device
         
         L = 1
-        K = 8
-        d = 8
+        K = 4
+        d = 4
         D = K * d
-        
         self.SE = SE
         
         self.FC_1 = FC(self.device, [1, D], [D, D], [F.relu, None], bn_decay)
@@ -36,4 +35,5 @@ class Model(nn.Module):
         
         X = self.FC_2(X)
         
+        del SE
         return X

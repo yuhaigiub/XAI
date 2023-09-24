@@ -8,14 +8,14 @@ class SpatialAttention(nn.Module):
         super(SpatialAttention, self).__init__()
         
         self.device = device
-        
+        S = 64 # SE seq len
         D = K * d
         self.d = d
         self.K = K
         
-        self.FC_q = FC(self.device, input_dims=2 * D, units=D, activations=F.relu, bn_decay=bn_decay)
-        self.FC_k = FC(self.device, input_dims=2 * D, units=D, activations=F.relu, bn_decay=bn_decay)
-        self.FC_v = FC(self.device, input_dims=2 * D, units=D, activations=F.relu, bn_decay=bn_decay)
+        self.FC_q = FC(self.device, input_dims=D + S, units=D, activations=F.relu, bn_decay=bn_decay)
+        self.FC_k = FC(self.device, input_dims=D + S, units=D, activations=F.relu, bn_decay=bn_decay)
+        self.FC_v = FC(self.device, input_dims=D + S, units=D, activations=F.relu, bn_decay=bn_decay)
         self.FC = FC(self.device, input_dims=D, units=D, activations=F.relu, bn_decay=bn_decay)
     
     def forward(self, X, SE):
@@ -29,7 +29,7 @@ class SpatialAttention(nn.Module):
         query_split = torch.split(query, self.d, dim=-1)
         key_split = torch.split(key, self.d, dim=-1)
         value_split = torch.split(value, self.d, dim=-1)
-
+        
         query = torch.cat(query_split, dim=0)
         key = torch.cat(key_split, dim=0)
         value = torch.cat(value_split, dim=0)
@@ -43,5 +43,6 @@ class SpatialAttention(nn.Module):
         
         X = self.FC(X)
         
-        del query, key, attention
+        del batch_size, query, key, value
+        del query_split, key_split, value_split, attention
         return X

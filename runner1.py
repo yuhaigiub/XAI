@@ -16,10 +16,14 @@ from utils import metrics
 from utils.loaders.dataset import load_dataset
 from utils.loaders.embeddings import load_SE
 
-np.random.seed(42)
+fix_seed = 42
+# random.seed(fix_seed)
+torch.manual_seed(fix_seed)
+np.random.seed(fix_seed)
 
 class Args():
     def __init__(self):
+        self.mode = "Train"
         self.device = 'cuda:0'
         # loaders
         self.data_dir = 'data/METR-LA'
@@ -57,6 +61,12 @@ train_loss_per_epoch= []
 val_loss_per_epoch= []
 print ("Start training.....")
 
+number_of_params = sum(p.numel() for p in model.parameters())
+number_of_trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+print("number of parameters:")
+print('Total:', number_of_params)
+print('Trainable:', number_of_trainable_params)
+
 for i in range(1, args.epochs + 1):
     train_loss = []
     train_mape = []
@@ -66,7 +76,7 @@ for i in range(1, args.epochs + 1):
     
     for j, (x, y, t) in enumerate(data_loader['train_loader'].get_iterator()):
         trainX = torch.FloatTensor(np.expand_dims(x, axis=-1)).to(device)
-        trainY = torch.FloatTensor(np.expand_dims(x, axis=-1)).to(device)
+        trainY = torch.FloatTensor(np.expand_dims(y, axis=-1)).to(device)
         trainTE = torch.FloatTensor(t).to(device)
         
         model.train()  # tell the model that you are training
@@ -95,10 +105,7 @@ for i in range(1, args.epochs + 1):
     epoch_train_mape = torch.mean(torch.tensor(train_mape))
     epoch_train_mae = torch.mean(torch.tensor(train_mae))
     
-    log_file.write(f'Epoch {i}, ' +
-                   'Training Loss: {epoch_train_loss:.4f}, ' + 
-                   'Training MAPE: {epoch_train_mape:.4f}, ' + 
-                   'Training MAE: {epoch_train_mae:.4f} \n ')
+    print(f'Epoch [{i}], {args.mode} Loss: {epoch_train_loss:.4f}, {args.mode} MAPE: {epoch_train_mape:.4f}, {args.mode} RMSE: {epoch_train_mae:.4f}')
     log_file.flush()
     
     print(f'Epoch {i}, Training Loss: {epoch_train_loss:.4f}')
