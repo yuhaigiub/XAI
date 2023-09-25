@@ -14,7 +14,7 @@ import torch.optim as optim
 import model.gman.model1 as gman
 from utils import metrics
 from utils.loaders.dataset import load_dataset
-from utils.loaders.embeddings import load_SE
+from utils.loaders.loaders import load_SE
 
 np.random.seed(42)
 
@@ -77,9 +77,7 @@ for i in range(1, args.epochs + 1):
             test_loss.append(loss)
             test_mape.append(mape)
             test_mae.append(mae)
-            
-     
-            
+        
         epoch_test_loss = torch.mean(torch.tensor(test_loss))
         epoch_test_mape = torch.mean(torch.tensor(test_mape))
         epoch_test_mae = torch.mean(torch.tensor(test_mae))
@@ -87,8 +85,6 @@ for i in range(1, args.epochs + 1):
         log_file.write(f'Epoch {i}, {args.mode} Loss: {epoch_test_loss:.4f}, {args.mode} MAPE: {epoch_test_mape:.4f}, {args.mode} RMSE: {epoch_test_mae:.4f} \n')
         log_file.flush()
         print(f'Epoch [{i}], {args.mode} Loss: {epoch_test_loss:.4f}, {args.mode} MAPE: {epoch_test_mape:.4f}, {args.mode} MAE: {epoch_test_mae:.4f}')
-
-    
 
 log_file.close()
 print ("Done......")

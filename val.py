@@ -77,9 +77,7 @@ for i in range(1, args.epochs + 1):
             val_loss.append(loss)
             val_mape.append(mape)
             val_mae.append(mae)
-            
-     
-            
+        
         epoch_val_loss = torch.mean(torch.tensor(val_loss))
         epoch_val_mape = torch.mean(torch.tensor(val_mape))
         epoch_val_mae = torch.mean(torch.tensor(val_mae))
@@ -87,8 +85,6 @@ for i in range(1, args.epochs + 1):
         log_file.write(f'Epoch {i}, {args.mode} Loss: {epoch_val_loss:.4f}, {args.mode} MAPE: {epoch_val_mape:.4f}, {args.mode} RMSE: {epoch_val_mae:.4f} \n')
         log_file.flush()
         print(f'Epoch [{i}], {args.mode} Loss: {epoch_val_loss:.4f}, {args.mode} MAPE: {epoch_val_mape:.4f}, {args.mode} MAE: {epoch_val_mae:.4f}')
-
-    
 
 log_file.close()
 print ("Done......")
