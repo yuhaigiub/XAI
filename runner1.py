@@ -108,7 +108,7 @@ for i in range(1, args.epochs + 1):
     epoch_train_mape = torch.mean(torch.tensor(train_mape))
     epoch_train_mae = torch.mean(torch.tensor(train_mae))
     
-    print(f'Epoch [{i}], {args.mode} Loss: {epoch_train_loss:.4f}, {args.mode} MAPE: {epoch_train_mape:.4f}, {args.mode} RMSE: {epoch_train_mae:.4f}')
+    log_file.write(f'Epoch {i}, {args.mode} Loss: {epoch_train_loss:.4f}, {args.mode} MAPE: {epoch_train_mape:.4f}, {args.mode} MAE: {epoch_train_mae:.4f} \n')
     log_file.flush()
     
     print(f'Epoch {i}, Training Loss: {epoch_train_loss:.4f}')
