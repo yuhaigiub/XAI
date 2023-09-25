@@ -17,6 +17,7 @@ from utils.loaders.dataset import load_dataset
 from utils.loaders.loaders import load_SE
 
 from model.blackBox.graphWavenet.wrapper import BlackBox
+from utils.pertubate import Gaussian
 
 fix_seed = 42
 # random.seed(fix_seed)
@@ -51,8 +52,8 @@ SE = load_SE(args.data_dir)
 
 scaler = data_loader['scaler']
 
-# model = gman.Model(device, SE, args.bn_decay)
-model = BlackBox(args.blackbox_data_dir, args.num_nodes)
+model = gman.Model(device, SE, args.bn_decay)
+pertubate = Gaussian(device, scaler.mean, scaler.std)
 
 optimizer = optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
 loss_fn = metrics.masked_rmse
@@ -82,11 +83,18 @@ for i in range(1, args.epochs + 1):
         trainY = torch.FloatTensor(np.expand_dims(y, axis=-1)).to(device)
         trainTE = torch.FloatTensor(t).to(device)
         
+        blackbox = BlackBox(args.blackbox_data_dir, args.num_nodes)
+        
         model.train()  # tell the model that you are training
         optimizer.zero_grad()  # set the gradient to zero
         
-        output = model(trainX)
-        predY = scaler.inverse_transform(output)
+        saliency = model(trainX, SE)
+        
+        trainXm = pertubate.apply(scaler.inverse_transform(trainX), saliency)
+        trainXm = scaler.transform(trainXm)
+        
+        predY = blackbox(trainXm)
+        predY = scaler.inverse_transform(predY)
         
         loss = loss_fn(predY, trainY, 0.0)
         
