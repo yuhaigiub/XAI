@@ -14,7 +14,9 @@ import torch.optim as optim
 import model.gman.model1 as gman
 from utils import metrics
 from utils.loaders.dataset import load_dataset
-from utils.loaders.embeddings import load_SE
+from utils.loaders.loaders import load_SE
+
+from model.blackBox.graphWavenet.wrapper import BlackBox
 
 fix_seed = 42
 # random.seed(fix_seed)
@@ -27,7 +29,7 @@ class Args():
         self.device = 'cuda:0'
         # loaders
         self.data_dir = 'data/METR-LA'
-        self.blackbox_file = 'data/models/graphwavenet.pth'
+        self.blackbox_data_dir = 'data/pretrained/GraphWavenet'
         self.adj_file = 'data/adj_mx.pkl'
         self.log_dir = 'log'
         self.save_dir = 'saved_models'
@@ -49,7 +51,8 @@ SE = load_SE(args.data_dir)
 
 scaler = data_loader['scaler']
 
-model = gman.Model(device, SE, args.bn_decay)
+# model = gman.Model(device, SE, args.bn_decay)
+model = BlackBox(args.blackbox_data_dir, args.num_nodes)
 
 optimizer = optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
 loss_fn = metrics.masked_rmse
@@ -82,7 +85,7 @@ for i in range(1, args.epochs + 1):
         model.train()  # tell the model that you are training
         optimizer.zero_grad()  # set the gradient to zero
         
-        output = model(trainX, SE)
+        output = model(trainX)
         predY = scaler.inverse_transform(output)
         
         loss = loss_fn(predY, trainY, 0.0)

@@ -13,8 +13,12 @@ def makeSequence(data, seq_size=12):
         x[i] = data[i: i + seq_size]
     return x
 
-def makeSequenceXY(data, seq_size=12):
-    num_his, num_pred = seq_size, seq_size
+def makeSequenceXY(data, seq_size=12, pred_size=None):
+    if pred_size == None:
+        num_his, num_pred = seq_size, seq_size
+    else:
+        num_his, num_pred = seq_size, pred_size
+        
     num_step, dims = data.shape
     num_sample = num_step - num_his - num_pred + 1
     x = torch.zeros(num_sample, num_his, dims)

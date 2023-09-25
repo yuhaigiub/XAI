@@ -14,7 +14,7 @@ import torch.optim as optim
 import model.gman.model1 as gman
 from utils import metrics
 from utils.loaders.dataset import load_dataset
-from utils.loaders.embeddings import load_SE
+from utils.loaders.loaders import load_SE
 
 np.random.seed(42)
 
