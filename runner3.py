@@ -2,7 +2,7 @@
 Description:
 Model: models/gman/model1.py
 
-Task: Traffic Forecasting
+Task: XAI
 '''
 
 import os
@@ -31,13 +31,13 @@ class Args():
         self.device = 'cuda:0'
         # loaders
         self.data_dir = 'data/METR-LA'
-        self.blackbox_data_dir = 'data/pretrained/GraphWavenet'
+        self.blackbox_data_dir = 'data/pretrained/GraphWaveNet'
         self.adj_file = 'data/adj_mx.pkl'
         self.log_dir = 'log'
         self.save_dir = 'saved_models'
         # trainer
         self.batch_size = 13
-        self.epochs = 2
+        self.epochs = 1
         # optimizer
         self.weight_decay = 0.0001
         self.learning_rate = 0.001
@@ -60,14 +60,16 @@ SE = load_SE(args.data_dir)
 scaler = data_loader['scaler']
 
 model = gman.Model(device, SE, args.bn_decay)
-# model = patchTST.Model(device=device,
-#                        context_window=args.seq_len, 
-#                        target_window=args.pred_len, 
-#                        patch_len=args.patch_len, 
-#                        stride=args.stride)
+
 
 optimizer = optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
 loss_fn = metrics.masked_rmse
+
+scaler_mean = torch.FloatTensor(data_loader['scaler'].mean).to(device)
+scaler_std = torch.FloatTensor(data_loader['scaler'].std).to(device)
+
+
+perturb = Gaussian(device, scaler_mean, scaler_std)
 
 log_file = open(args.log_dir + '/loss_train_log.txt', 'w')
 os.makedirs(args.save_dir, exist_ok=True)
@@ -98,18 +100,21 @@ for i in range(1, args.epochs + 1):
         trainY = torch.FloatTensor(np.expand_dims(y, axis=-1)).to(device)
         trainTE = torch.FloatTensor(t).to(device)
         output = model(trainX, trainTE)
+        black_box = BlackBox('GraphWaveNet', args.num_nodes).to(device)
         
-        # PatchTST
-        # trainX = torch.FloatTensor(x).to(device)
-        # trainY = torch.FloatTensor(y).to(device)
-        # output = model(trainX)
+
         
-        predY = scaler.inverse_transform(output)
+        trainX = scaler.inverse_transform(trainX)
+        trainXm = perturb.apply(trainX, output).to(device)
+        trainXm = scaler.transform(trainXm)
+
+        trainYm = black_box(trainXm)
+        trainYm = scaler.inverse_transform(trainYm)
         
-        loss = loss_fn(predY, trainY, 0.0)
+        loss = loss_fn(trainY, trainYm, 0.0)
         
-        mape = metrics.masked_mape(predY, trainY, 0.0)
-        mae = metrics.masked_mae(predY, trainY, 0.0)
+        mape = metrics.masked_mape(trainY, trainYm, 0.0)
+        mae = metrics.masked_mae(trainY, trainYm, 0.0)
         
         train_loss.append(loss)
         train_mape.append(mape)
@@ -132,11 +137,16 @@ for i in range(1, args.epochs + 1):
     print(f'Epoch {i}, Training Loss: {epoch_train_loss:.4f}')
     
     model.train(mode=False) # tell the model that you are not training
-    if i % 2 == 0:
-        print(f'epoch {i} trained')
-        print(f'Model saved at epochs {i}')
-        model_filename = os.path.join(args.save_dir, f'G_T_model_{i}.pth')
-        torch.save(model, model_filename)
+    # if i % 2 == 0:
+    #     print(f'epoch {i} trained')
+    #     print(f'Model saved at epochs {i}')
+    #     model_filename = os.path.join(args.save_dir, f'G_T_model_{i}.pth')
+    #     torch.save(model, model_filename)
+   
+    print(f'epoch {i} trained')
+    print(f'Model saved at epochs {i}')
+    model_filename = os.path.join(args.save_dir, f'G_T_model_{i}.pth')
+    torch.save(model, model_filename)
 
 log_file.close()
 print ("Done......")
