@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 from torch import nn
-from layers.FC import FC
+from layers.gman.FC import FC
 
 class SpatialAttention(nn.Module):
     def __init__(self, device, K, d, bn_decay):
@@ -13,10 +13,10 @@ class SpatialAttention(nn.Module):
         self.d = d
         self.K = K
         
-        self.FC_q = FC(self.device, input_dims=D + S, units=D, activations=F.relu, bn_decay=bn_decay)
-        self.FC_k = FC(self.device, input_dims=D + S, units=D, activations=F.relu, bn_decay=bn_decay)
-        self.FC_v = FC(self.device, input_dims=D + S, units=D, activations=F.relu, bn_decay=bn_decay)
-        self.FC = FC(self.device, input_dims=D, units=D, activations=F.relu, bn_decay=bn_decay)
+        self.FC_q = FC(self.device, input_dims=D + S, units=D, activations=F.gelu, bn_decay=bn_decay)
+        self.FC_k = FC(self.device, input_dims=D + S, units=D, activations=F.gelu, bn_decay=bn_decay)
+        self.FC_v = FC(self.device, input_dims=D + S, units=D, activations=F.gelu, bn_decay=bn_decay)
+        self.FC = FC(self.device, input_dims=D, units=D, activations=F.gelu, bn_decay=bn_decay)
     
     def forward(self, X, SE):
         batch_size = X.shape[0]

@@ -1,8 +1,8 @@
 from torch import nn
-from layers.Convolution import Convolution
+from layers.gman.Convolution import Convolution
 
 class FC(nn.Module):
-    def __init__(self, device, input_dims, units, activations, bn_decay, use_bias=True):
+    def __init__(self, device, input_dims, units, activations, bn_decay, use_bias=True, dropout=0.):
         super(FC, self).__init__()
         
         self.device = device
@@ -23,7 +23,7 @@ class FC(nn.Module):
         
         convs = []
         for input_dim, num_unit, activation in zip(input_dims, units, activations):
-            layer = Convolution(self.device, 
+            layer = Convolution(device,
                                 input_dim, 
                                 num_unit, 
                                 kernel_size=[1, 1], 
@@ -31,7 +31,8 @@ class FC(nn.Module):
                                 padding="VALID", 
                                 use_bias=use_bias, 
                                 activation=activation, 
-                                bn_decay=bn_decay)
+                                bn_decay=bn_decay,
+                                dropout=dropout)
             convs.append(layer)
         
         self.convs = nn.ModuleList(convs).to(self.device)

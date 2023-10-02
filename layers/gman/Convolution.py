@@ -13,7 +13,8 @@ class Convolution(nn.Module):
                  padding='SAME', 
                  use_bias=True, 
                  activation=F.relu, 
-                 bn_decay=None):
+                 bn_decay=None, 
+                 dropout=0.):
         super(Convolution, self).__init__()
         self.device = device
         self.activation = activation
@@ -24,25 +25,30 @@ class Convolution(nn.Module):
         else:
             self.padding_size = [0, 0]
         
-        self.conv = nn.Conv2d(input_dim, output_dim , kernel_size, stride=stride, padding=0, bias=use_bias)
-        self.batch_norm = nn.BatchNorm2d(output_dim, momentum=bn_decay)
-        
-        self.conv.to(self.device)
-        self.batch_norm.to(self.device)
+        self.conv = nn.Conv2d(input_dim, 
+                              output_dim , 
+                              kernel_size, 
+                              stride=stride, 
+                              padding=0, 
+                              bias=use_bias, 
+                              device=device)
+        self.batch_norm = nn.BatchNorm2d(output_dim, momentum=bn_decay, device=device)
+        self.dropout = nn.Dropout(dropout)
         
         torch.nn.init.xavier_normal_(self.conv.weight)
         if use_bias:
-            torch.nn.init.zeros_(self.conv.bias)    
+            torch.nn.init.zeros_(self.conv.bias)   
 
     def forward(self, X):
         X = X.permute(0, 3, 2, 1)
         X = F.pad(X, (self.padding_size[1], self.padding_size[1], self.padding_size[0], self.padding_size[0]))
         
         X = self.conv(X)
+        X = self.dropout(X)
         X = self.batch_norm(X)
+        
         if self.activation != None:
             X = self.activation(X)
-        
         X = X.permute(0, 3, 2, 1)
         
         return X

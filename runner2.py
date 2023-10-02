@@ -11,8 +11,8 @@ import numpy as np
 import torch
 import torch.optim as optim
 
-import model.gman.model1 as gman
-# import model.patchTST.model1 as patchTST
+# import model.gman.model1 as gman
+import model.patchTST.model1 as patchTST
 from utils import metrics
 from utils.loaders.dataset import load_dataset
 from utils.loaders.loaders import load_SE
@@ -59,12 +59,12 @@ SE = load_SE(args.data_dir)
 
 scaler = data_loader['scaler']
 
-model = gman.Model(device, SE, args.bn_decay)
-# model = patchTST.Model(device=device,
-#                        context_window=args.seq_len, 
-#                        target_window=args.pred_len, 
-#                        patch_len=args.patch_len, 
-#                        stride=args.stride)
+# model = gman.Model(device, SE, args.bn_decay)
+model = patchTST.Model(device=device,
+                       context_window=args.seq_len, 
+                       target_window=args.pred_len, 
+                       patch_len=args.patch_len, 
+                       stride=args.stride)
 
 optimizer = optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
 loss_fn = metrics.masked_rmse
@@ -94,15 +94,15 @@ for i in range(1, args.epochs + 1):
         optimizer.zero_grad()  # set the gradient to zero
         
         # gman
-        trainX = torch.FloatTensor(np.expand_dims(x, axis=-1)).to(device)
-        trainY = torch.FloatTensor(np.expand_dims(y, axis=-1)).to(device)
-        trainTE = torch.FloatTensor(t).to(device)
-        output = model(trainX, trainTE)
+        # trainX = torch.FloatTensor(np.expand_dims(x, axis=-1)).to(device)
+        # trainY = torch.FloatTensor(np.expand_dims(y, axis=-1)).to(device)
+        # trainTE = torch.FloatTensor(t).to(device)
+        # output = model(trainX, trainTE)
         
         # PatchTST
-        # trainX = torch.FloatTensor(x).to(device)
-        # trainY = torch.FloatTensor(y).to(device)
-        # output = model(trainX)
+        trainX = torch.FloatTensor(x).to(device)
+        trainY = torch.FloatTensor(y).to(device)
+        output = model(trainX)
         
         predY = scaler.inverse_transform(output)
         
