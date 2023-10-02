@@ -12,7 +12,7 @@ class Convolution(nn.Module):
                  stride=(1, 1), 
                  padding='SAME', 
                  use_bias=True, 
-                 activation=F.relu, 
+                 activation=nn.ReLU, 
                  bn_decay=None, 
                  dropout=0.):
         super(Convolution, self).__init__()
@@ -42,6 +42,7 @@ class Convolution(nn.Module):
     def forward(self, X):
         X = X.permute(0, 3, 2, 1)
         X = F.pad(X, (self.padding_size[1], self.padding_size[1], self.padding_size[0], self.padding_size[0]))
+        X = X.to(self.device)
         
         X = self.conv(X)
         X = self.dropout(X)
@@ -49,6 +50,7 @@ class Convolution(nn.Module):
         
         if self.activation != None:
             X = self.activation(X)
+            
         X = X.permute(0, 3, 2, 1)
         
         return X

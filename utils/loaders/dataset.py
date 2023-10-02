@@ -59,9 +59,10 @@ def load_dataset(dataset_dir, batch_size):
     val_time = time[train_sizes:train_sizes + val_sizes]
     test_time = time[-test_sizes:]
     #
-    data['t_train'] = makeSequence(train_time)
-    data['t_val'] = makeSequence(val_time)
-    data['t_test'] = makeSequence(test_time)
+    
+    data['t_train'] = torch.cat(makeSequenceXY(train_time), 1).type(torch.int32)
+    data['t_val'] = torch.cat(makeSequenceXY(val_time), 1).type(torch.int32)
+    data['t_test'] = torch.cat(makeSequenceXY(test_time), 1).type(torch.int32)
     
     mean = data['x_train'][..., 0].mean()
     std = data['x_train'][..., 0].std()

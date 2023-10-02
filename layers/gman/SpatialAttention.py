@@ -8,20 +8,18 @@ class SpatialAttention(nn.Module):
         super(SpatialAttention, self).__init__()
         
         self.device = device
-        S = 64 # SE seq len
         D = K * d
         self.d = d
         self.K = K
         
-        self.FC_q = FC(self.device, input_dims=D + S, units=D, activations=F.gelu, bn_decay=bn_decay)
-        self.FC_k = FC(self.device, input_dims=D + S, units=D, activations=F.gelu, bn_decay=bn_decay)
-        self.FC_v = FC(self.device, input_dims=D + S, units=D, activations=F.gelu, bn_decay=bn_decay)
-        self.FC = FC(self.device, input_dims=D, units=D, activations=F.gelu, bn_decay=bn_decay)
+        self.FC_q = FC(self.device, input_dims=2 * D, units=D, activations=F.relu, bn_decay=bn_decay)
+        self.FC_k = FC(self.device, input_dims=2 * D, units=D, activations=F.relu, bn_decay=bn_decay)
+        self.FC_v = FC(self.device, input_dims=2 * D, units=D, activations=F.relu, bn_decay=bn_decay)
+        self.FC = FC(self.device, input_dims=D, units=D, activations=F.relu, bn_decay=bn_decay)
     
     def forward(self, X, SE):
         batch_size = X.shape[0]
         X = torch.cat((X, SE.to(self.device)), dim=-1)
-        
         query = self.FC_q(X)
         key = self.FC_k(X)
         value = self.FC_v(X)

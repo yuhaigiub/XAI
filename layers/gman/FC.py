@@ -35,7 +35,7 @@ class FC(nn.Module):
                                 dropout=dropout)
             convs.append(layer)
         
-        self.convs = nn.ModuleList(convs).to(self.device)
+        self.convs = nn.ModuleList(convs)
 
     def forward(self, X):
         for conv in self.convs:
